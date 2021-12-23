@@ -34,7 +34,7 @@ curl -sL "https://raw.githubusercontent.com/hxyro/rcli/master/rcli" | sudo tee /
     ```
 ---
 
-## Customization
+## [Customization](https://github.com/hxyro/rcli/blob/main/config.example)
 To see all available color options, open the configuration file 
 
     $HOME/.config/rcli/config
