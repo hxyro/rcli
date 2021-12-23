@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+
+LIMIT=100
+
+# sets default color scheme
+# available options: doom-one, gruv-box, nord, dracula, solarized
+COLOR_SCHEME="doom-one"
+
+# download dir 
+DEFAULT_DOWNLOAD_DIR="$HOME/rcli/download"
+
+# preview position
+# available options: right, left, top, bottom
+DEFAULT_PREVIEW_POSITION="right"
+
+# default proportion of window occupied by fzf preview
+PREVIEW_SIZE="65%"
+
+# send download notification
+# NOTE: dunst package required
+# available options: true, false
+SEND_NOTIFICATION="true"
+
+# Add subreddit and catagories here
+# syntax:
+#        (..
+#
+#   [catagory]="subreddit1 subreddit2 ..."
+#
+#      ..)
+#
+
+CATAGORY=(
+    [Memes]="memes linuxmemes raimimemes historymemes lastimages okbuddyretard comedyheaven programmingmemes"
+    
+    [Wallpapers]="wallpapers Cyberpunk Psychedelicwallpapers EarthPorn Art ArtefactPorn"
+
+    [Random]="HistoryPorn FoodPorn cats programminghorror"
+
+    [Unix]="unixporn unixart unixsocks"
+    )
