@@ -55,7 +55,7 @@ DEFAULT_DOWNLOAD_DIR="\$HOME/rcli/download"
 DEFAULT_PREVIEW_POSITION="right"
 
 # default proportion of window occupied by fzf preview
-PREVIEW_SIZE="65%"
+DEFAULT_PREVIEW_SIZE="65%"
 
 # send download notification
 # NOTE: dunst package required
@@ -90,7 +90,7 @@ EOF
 declare -x LIMIT
 declare -x DEFAULT_DOWNLOAD_DIR
 declare -x DEFAULT_PREVIEW_POSITION
-declare -x PREVIEW_SIZE
+declare -x DEFAULT_PREVIEW_SIZE
 declare -x SEND_NOTIFICATION
 declare -x COLOR_SCHEME
 declare -A CATAGORY
