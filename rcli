@@ -1,0 +1,276 @@
+#!/usr/bin/env bash
+# Copyright (C) 2021-2022 Shubham vyas
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU-GPL3
+
+rcli_version="0.1.0"
+
+declare -x CONFIG_DIR=$HOME/.config/rcli
+declare -x CONFIG_FILE=$CONFIG_DIR/config
+
+
+help_main()
+{
+    cat <<- EOF 2> /dev/null
+    browse and download images from reddit.
+    -h                          print this help message
+    -v                          print rcli's version
+
+    press <right> to open image in default image viewer.
+    press ctrl+y to copy image. ( xclip package required )
+    press ENTER to save an image to default directory.
+    press q to quit.
+    you can also customize rcli by editing the 
+    default configuration file => $CONFIG_FILE
+EOF
+
+}
+
+version()
+{
+    echo "rcli version $rcli_version"
+}
+
+
+
+CREAT_CONFIG()
+{
+mkdir -p $CONFIG_DIR
+cat <<- EOF 2> /dev/null > $CONFIG_FILE
+#!/usr/bin/env bash
+
+# number of posts to scrape from reddit
+# default: 50
+LIMIT=50
+
+# sets default color scheme
+# available options: doom-one, gruv-box, nord, dracula, solarized
+COLOR_SCHEME="doom-one"
+
+# download dir 
+DEFAULT_DOWNLOAD_DIR="\$HOME/rcli/download"
+
+# preview position
+# available options: right, left, top, bottom
+DEFAULT_PREVIEW_POSITION="right"
+
+# default proportion of window occupied by fzf preview
+PREVIEW_SIZE="65%"
+
+# send download notification
+# NOTE: dunst package required
+# available options: true, false
+SEND_NOTIFICATION="false"
+
+# Add subreddit and catagories here
+# syntax:
+#        (..
+#
+#   [catagory]="subreddit1 subreddit2 ..."
+#
+#      ..)
+#
+
+CATAGORY=(
+    [Memes]="memes linuxmemes raimimemes historymemes lastimages okbuddyretard comedyheaven programmingmemes"
+    
+    [Wallpapers]="wallpapers Cyberpunk Psychedelicwallpapers EarthPorn"
+
+    [Random]="HistoryPorn FoodPorn cats programminghorror"
+
+    [Unix]="unixporn unixart unixsocks"
+    )
+EOF
+
+}
+############################################################
+
+[ -f "${CONFIG_FILE}" ] || CREAT_CONFIG
+
+declare -x LIMIT
+declare -x DEFAULT_DOWNLOAD_DIR
+declare -x DEFAULT_PREVIEW_POSITION
+declare -x PREVIEW_SIZE
+declare -x SEND_NOTIFICATION
+declare -x COLOR_SCHEME
+declare -A CATAGORY
+
+source $CONFIG_FILE
+
+mkdir -p $DEFAULT_DOWNLOAD_DIR 2> /dev/null
+
+#############################################################
+#COLOR_SCHEME
+
+[ "${COLOR_SCHEME}" == "doom-one" ] && COLOR="bg:#282C34,bg+:#403750,info:#5b626f,border:#7b828f,spinner:#55B6C2,hl:#00ff99,hl+:#fc3564,fg:#bbc2cf,fg+:#FFFFFF,header:#5FC0CC,pointer:#EA757E,prompt:#98C379"
+[ "${COLOR_SCHEME}" == "gruv-box" ] && COLOR="bg:#282828,bg+:#383838,border:#bbab82,spinner:#55B6C2,hl:#b8ff26,hl+:#fb4934,fg:#ebdbb2,fg+:#ebdbb2,header:#8ec07c,pointer:#fb4934,prompt:#b8bb26"
+[ "${COLOR_SCHEME}" == "nord" ] && COLOR="bg:#2E3440,bg+:#3E4450,border:#A8AEB9,spinner:#8FBCBB,hl:#A3FE8C,hl+:#BF616A,fg:#D8DEE9,fg+:#E8EEF9,header:#8FBCBB,pointer:#BF616A,prompt:#A3BE8C"
+[ "${COLOR_SCHEME}" == "dracula" ] && COLOR="bg:#282a36,bg+:#383a46,border:#b8b8b2,spinner:#8be9fd,hl:#50ff7b,hl+:#ff5555,fg:#f8f8f2,fg+:#f8f8f2,header:#8be9fd,pointer:#ff5555,prompt:#50fa7b"
+[ "${COLOR_SCHEME}" == "solarized" ] && COLOR="bg:#002b36,bg+:#003b46,border:#536466,spinner:#2aa198,hl:#58ff75,hl+:#cb4b16,fg:#839496,fg+:#93a4a6,header:#93a1a1,pointer:#dc322f,prompt:#859900"
+
+#############################################################
+
+
+readonly BASH_BINARY="$(which bash)"
+readonly REDRAW_COMMAND="toggle-preview+toggle-preview"
+readonly REDRAW_KEY="r"
+readonly USER_AGENT='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.69.3029.110 Safari/537.36'
+
+
+declare -x main_var
+declare -x subreddit_var
+declare -x subreddit_list_var
+declare -x catagory_var
+
+for i in ${!CATAGORY[*]}
+do
+    main_var="${main_var} ${i}"
+done
+
+#############################################################
+
+GET_DATA()
+{
+    curl -s "https://www.reddit.com/r/${subreddit_var}/hot.json?limit=$LIMIT" \
+         -A $USER_AGENT | jq | \
+         awk -F '"' '/(title).*",$|(url_overridden_by_dest).*(jpg|png|gif|jepg|tif|svg)",$/{print $4}' | \
+         sed  -e ':a;N;$!ba;s/\nhttps\:/>https\:/g' | \
+         grep https
+}
+
+#############################################################
+
+CALC_POSITION()
+{
+    < <(</dev/tty stty size) read TERMINAL_LINES TERMINAL_COLUMNS
+
+    case "${PREVIEW_POSITION:-${DEFAULT_PREVIEW_POSITION}}" in
+        left|up|top)
+            X=1
+            Y=1
+            ;;
+        right)
+            X=$((TERMINAL_COLUMNS - COLUMNS - 2))
+            Y=1
+            ;;
+        down|bottom)
+            X=1
+            Y=$((TERMINAL_LINES - LINES - 1))
+            ;;
+    esac
+}
+
+#############################################################
+
+DRAW_PREVIEW()
+{
+    curl -s -o /tmp/rcli-tmp.rcli_img "$(echo "$1" | cut -d">" -f 2)"
+    pkill ueberzug
+    CALC_POSITION
+
+    ueberzug layer --parser bash 0< <(
+    declare -Ap cmd=(
+            [action]=add \
+            [identifier]="preview" \
+            [x]="${X}" \
+            [y]="${Y}" \
+            [width]="${COLUMNS}" \
+            [height]="${LINES}" \
+            [scaler]=fit_contain \
+            [scaling_position_y]=0.5 \
+            [scaling_position_x]=0.5 \
+            [path]="/tmp/rcli-tmp.rcli_img"
+        )
+        sleep 4m
+    )
+}
+
+#############################################################
+
+DOWNLOAD_IMG()
+{
+    sleep 0.1
+    cp /tmp/rcli-tmp.rcli_img $DEFAULT_DOWNLOAD_DIR/$(date +%F_%H-%M-%S).img &> /dev/null
+    if [ "${SEND_NOTIFICATION}" == "true" ]; then
+        type dunst &> /dev/null && notify-send -u low "image downloaded"
+    fi
+}
+
+#############################################################
+
+while getopts ":hv" opt;
+do
+    case $opt in
+            h) help_main && exit 0;;
+            v) version && exit 0;;
+            \?) echo -en "${HELP}" ; exit 1;;
+    esac
+done
+shift $((OPTIND -1))
+
+while true
+do
+    catagory_var="$(SHELL="${BASH_BINARY}" fzf  -i \
+                                                --no-sort \
+                                                --cycle \
+                                                --keep-right \
+                                                --preview 'declare -A CATAGORY && source $CONFIG_FILE && echo ${CATAGORY[{}]} | tr " " "\n"' \
+                                                --reverse \
+                                                --border=rounded \
+                                                --prompt='$ ' \
+                                                --pointer='>>' \
+                                                --header-first \
+                                                --header=" Catagory Meun    [quit <-- key --> enter]" \
+                                                --padding=0,0,0,2 \
+                                                --bind "q:abort" \
+                                                --bind "left:abort" \
+                                                --bind "enter:accept" \
+                                                --bind "right:accept" \
+                                                --color=$COLOR < <(echo ${main_var} | tr " " "\n") )"
+
+    [ -z "${catagory_var}" ] && break || subreddit_list_var="$(echo "${CATAGORY[${catagory_var}]}")"
+
+    subreddit_var="$(SHELL="${BASH_BINARY}" fzf -i \
+			                                    --no-sort \
+			                                    --cycle \
+			                                    --keep-right \
+			                                    --border=rounded \
+			                                    --reverse \
+			                                    --prompt='$ ' \
+			                                    --pointer='>>' \
+			                                    --header-first \
+			                                    --header=" ${catagory_var}    [back <-- key --> enter]" \
+                                                --bind "q:abort" \
+                                                --bind "left:abort" \
+                                                --bind "right:accept" \
+			                                    --color=$COLOR < <(echo ${subreddit_list_var} | tr " " "\n") )"
+    [ -z "${subreddit_var}" ] && continue 
+
+    if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+
+        export -f DRAW_PREVIEW CALC_POSITION DOWNLOAD_IMG
+        pkill ueberzug
+        IND="$(SHELL="${BASH_BINARY}" fzf -i \
+                                   --delimiter="$(printf ">")" \
+                                   --cycle \
+                                   --nth=1 \
+                                   --with-nth=1 \
+                                   --reverse \
+                                   --preview "DRAW_PREVIEW {}" \
+                                   --preview-window "${DEFAULT_PREVIEW_POSITION}:""${DEFAULT_PREVIEW_SIZE}" \
+                                   --prompt '$' \
+                                   --pointer '>>' \
+                                   --header-first \
+                                   --header=" r/${subreddit_var}    [back <-- key --> open]" \
+                                   --padding=0,0,0,2 \
+                                   --bind "q:abort" \
+                                   --bind "left:abort" \
+                                   --bind "enter:execute-silent(DOWNLOAD_IMG {})" \
+                                   --bind "right:execute-silent(xdg-open /tmp/rcli-tmp.rcli_img)" \
+                                   --bind "ctrl-y:execute-silent(xclip -selection clipboard -t image/png -i /tmp/rcli-tmp.rcli_img)" \
+                                   --bind "${REDRAW_KEY}:${REDRAW_COMMAND}" \
+                                   --color=$COLOR < <( GET_DATA ) )"
+    [ -z "${IND}" ] && continue 
+    fi
+    break
+done
