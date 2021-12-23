@@ -2,6 +2,8 @@
 ---
 Browse and download images from reddit.
 
+<p align="center"><img src="./assets/demo.gif" width=990px alt="demo"></p>
+
 ---
 ## Fast Installation
 ```
