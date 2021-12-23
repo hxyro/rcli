@@ -1,6 +1,8 @@
-# rcli
+# rcli   ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/hxyro/rcli?color=g) ![GitHub top language](https://img.shields.io/github/languages/top/hxyro/rcli?color=g)  ![GitHub contributors](https://img.shields.io/github/contributors/hxyro/rcli?color=g) ![GitHub](https://img.shields.io/github/license/hxyro/rcli?color=g)
+---
 Browse and download images from reddit.
 
+---
 ## Fast Installation
 ```
 curl -sL "https://raw.githubusercontent.com/hxyro/rcli/master/rcli" | sudo tee /usr/local/bin/rcli >/dev/null && sudo chmod 755 /usr/local/bin/rcli
@@ -30,5 +32,20 @@ curl -sL "https://raw.githubusercontent.com/hxyro/rcli/master/rcli" | sudo tee /
     ```
 ---
 
-## Usege
+## Customization
+To see all available color options, open the configuration file 
+
+    $HOME/.config/rcli/config
+    
+        # sets default color scheme
+        # available options: doom-one, gruv-box, nord, dracula, solarized
+        COLOR_SCHEME="doom-one"
+
+## [License](https://github.com/hxyro/rcli/blob/main/LICENSE)
+
+
+The GNU General Public License v3.0 (GPL-3.0)
+
+Copyright (c) 2021-2022 Shubham vyas
+
 
