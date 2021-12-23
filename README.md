@@ -2,7 +2,7 @@
 ---
 Browse and download images from reddit.
 
-<p align="center"><img src="./assets/demo.gif" width=990px alt="demo"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/hxyro/rcli/master/assets/demo.gif" width=990px alt="demo"></p>
 
 ---
 ## Fast Installation
