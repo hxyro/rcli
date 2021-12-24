@@ -1,4 +1,4 @@
-# rcli   ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/hxyro/rcli?color=g) ![GitHub top language](https://img.shields.io/github/languages/top/hxyro/rcli?color=g)  ![GitHub contributors](https://img.shields.io/github/contributors/hxyro/rcli?color=g) ![GitHub](https://img.shields.io/github/license/hxyro/rcli?color=g)
+# rcli   ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/hxyro/rcli?color=g) ![GitHub top language](https://img.shields.io/github/languages/top/hxyro/rcli?color=g)  ![GitHub contributors](https://img.shields.io/github/contributors/hxyro/rcli?color=g) ![GitHub](https://img.shields.io/github/license/hxyro/rcli?color=g) ![GitHub release (latest by date)](https://img.shields.io/github/v/release/hxyro/rcli?color=g)
 ---
 Browse and download images from reddit.
 
