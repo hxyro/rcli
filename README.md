@@ -5,7 +5,7 @@ Browse and download images from reddit.
 <p align="center"><img src="https://raw.githubusercontent.com/hxyro/rcli/master/assets/demo.gif" width=990px alt="demo"></p>
 
 ---
-## Fast Installation
+## 🚀 Fast Installation
 ```
 curl -sL "https://raw.githubusercontent.com/hxyro/rcli/master/rcli" | sudo tee /usr/local/bin/rcli >/dev/null && sudo chmod 755 /usr/local/bin/rcli
 ```
